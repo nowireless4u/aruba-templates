@@ -1,0 +1,1304 @@
+# Header Variables
+%_sys_template_header%
+
+#Switch Stacking Variables
+%if stacking=backplane%
+stacking
+   member 1 type %member1_sku% mac-address %member1_mac%
+   member 1 priority 255
+   %if stack_number>1%
+   member 2 type %member2_sku% mac-address %member2_mac%
+   %endif%
+   %if stack_number>2%
+   member 3 type %member3_sku% mac-address %member3_mac%
+   %if standby_member=yes%
+   member 3 priority 200
+   %endif%
+   %endif%
+   %if stack_number>3%
+   member 4 type %member4_sku% mac-address %member4_mac%
+   %if standby_member=yes%
+   member 4 priority 200
+   %endif%
+   %endif%
+   %if stack_number>4%
+   member 5 type %member5_sku% mac-address %member5_mac%
+   %if standby_member=yes%
+   member 5 priority 200
+   %endif%
+   %endif%
+   %if stack_number>5%
+   member 6 type %member6_sku% mac-address %member6_mac%
+   %if standby_member=yes%
+   member 6 priority 200
+   %endif%
+   %endif%
+   %if stack_number>6%
+   member 7 type %member7_sku% mac-address %member7_mac%
+   %if standby_member=yes%
+   member 7 priority 200
+   %endif%
+   %endif%
+   %if stack_number>7%
+   member 8 type %member8_sku% mac-address %member8_mac%
+   %if standby_member=yes%
+   member 8 priority 200
+   %endif%
+   %endif%
+   %if stack_number>8%
+   member 9 type %member9_sku% mac-address %member9_mac%
+   %if standby_member=yes%
+   member 9 priority 200
+   %endif%
+   %endif%
+   %if stack_number>9%
+   member 10 type %member10_sku% mac-address %member10_mac%
+   member 10 priority 200
+   %endif%
+exit
+%endif%
+%if stacking=frontplane%
+vsf
+   enable domain %vsf_domain%
+   member 1
+      type "%member1_sku%"
+      priority 255
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link1_1"
+      link 2 name "I-Link1_2"
+      exit
+   member 2
+      type "%member2_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link2_1"
+      link 2 name "I-Link2_2"
+      exit
+   %if stack_number>2%
+   member 3
+      type "%member3_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link3_1"
+      link 2 name "I-Link3_2"
+      exit
+   %endif%
+   %if stack_number>3%
+   member 4
+      type "%member4_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link4_1"
+      link 2 name "I-Link4_2"
+      exit
+   %endif%
+   %if stack_number>4%
+   member 5
+      type "%member5_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link5_1"
+      link 2 name "I-Link5_2"
+      exit
+   %endif%
+   %if stack_number>5%
+   member 6
+      type "%member6_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link6_1"
+      link 2 name "I-Link6_2"
+      exit
+   %endif%
+   %if stack_number>6%
+   member 7
+      type "%member7_sku%"
+      %if standby_member=yes%
+      priority 200
+      %endif%
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link7_1"
+      link 2 name "I-Link7_2"
+      exit
+   %endif%
+   %if stack_number>7%
+   member 8
+      type "%member8_sku%"
+      priority 200
+      link 1 %vsf_link1%
+	   link 2 %vsf_link2%
+      link 1 name "I-Link8_1"
+      link 2 name "I-Link8_2"
+      exit
+   %endif%
+   port-speed %vsf_port_speed%
+   exit
+%endif%
+
+# System Variables
+%_sys_module_command%
+%if flexible_module=yes%
+flexible-module %module_type%
+%endif%
+hostname "%_sys_hostname%"
+%if switch_dur=enable%
+crypto ca-download usage clearpass retry 5
+include-credentials
+include-credentials clearpass-key
+%endif%
+%if dhcp_snooping=enable%
+dhcp-snooping
+no dhcp-snooping option 82
+dhcp-snooping vlan %snooping_vlans%
+ip client-tracker
+%endif% 
+ip dns domain-name "%domain_name%"
+ip dns server-address priority 1 %dns_server1%
+ip dns server-address priority 2 %dns_server2%
+no autorun
+no dhcp config-file-update
+no dhcp image-file-update
+password manager user-name %manager_username% plaintext %manager_password%
+
+
+#Time Settings
+timesync ntp
+ntp unicast
+ntp server-name "%ntp_server%" iburst
+ntp enable
+time daylight-time-rule continental-us-and-canada
+time timezone %timezone%
+
+#TACACS Server Information
+%if tacacs_auth=enable%
+tacacs-server host %tacacs_server1% key %tacacs_key%
+tacacs-server host %tacacs_server2% key %tacacs_key%
+tacacs-server timeout 60
+tacacs-server dead-time 20
+%endif%
+
+#RADIUS-SERVER Configuration
+%if port_auth=enable%
+radius-server host "%radius_server1%" key %radius_key%
+radius-server host "%radius_server1%" dyn-authorization
+radius-server host "%radius_server1%" time-window plus-or-minus-time-window
+radius-server host "%radius_server1%" time-window 30
+radius-server host "%radius_server2%" key %radius_key%
+radius-server host "%radius_server2%" dyn-authorization
+radius-server host "%radius_server2%" time-window plus-or-minus-time-window
+radius-server host "%radius_server2%" time-window 30
+%endif%
+%if switch_dur=enable%
+aaa authorization user-role enable download
+radius-server host "%radius_server1%" clearpass
+radius-server host "%radius_server2%" clearpass
+radius-server cppm identity "%dur_username%" key %dur_key%
+%endif%
+
+# AAA Server Groups
+%if port_auth=enable%
+aaa server-group radius "%radius_server_group%" host "%radius_server1%"
+aaa server-group radius "%radius_server_group%" host "%radius_server2%"
+%endif%
+
+#AAA Authentication Configuration
+%if tacacs_auth=enable%
+aaa authentication console login TACACS local
+aaa authentication console enable TACACS local
+aaa authentication ssh login TACACS local
+aaa authentication ssh enable TACACS local
+aaa authentication login privilege-mode
+%endif%
+%if port_auth=enable%
+aaa authentication port-access eap-radius server-group "%radius_server_group%"
+aaa authentication mac-based chap-radius server-group "%radius_server_group%"
+aaa authentication captive-portal enable
+%endif%
+
+#AAA Accounting Configuration
+%if port_auth=enable%
+aaa accounting update periodic 1
+aaa accounting network start-stop radius server-group "%radius_server_group%"
+%endif%
+%if tacacs_auth=enable%
+aaa accounting commands interim-update tacacs
+aaa accounting exec start-stop tacacs
+aaa accounting system stop-only tacacs
+%endif%
+
+# ACLS
+%if port_auth=enable%
+class ipv4 "ALLOWALL"
+     10 match ip 0.0.0.0 255.255.255.255 0.0.0.0 255.255.255.255
+   exit
+policy user "ALLOWALL"
+     10 class ipv4 "ALLOWALL" action permit
+   exit
+%endif%
+
+#AAA Authorization Configuration
+%if tacacs_auth=enable%
+aaa authorization commands access-level all
+aaa authorization commands auto
+%endif%
+%if port_auth=enable%
+aaa authorization user-role name "%initial_user%"
+   policy "ALLOWALL"
+   reauth-period 300
+   vlan-name "%initial_user_vlan%"
+   exit
+aaa authorization user-role initial-role "%initial_user%"
+%endif%
+
+# Source Interface Variables
+ip source-interface tacacs vlan %management_vlan%
+ip source-interface radius vlan %management_vlan%
+ip source-interface syslog vlan %management_vlan%
+ip source-interface telnet vlan %management_vlan%
+ip source-interface tftp vlan %management_vlan%
+ip source-interface sntp vlan %management_vlan%
+ip source-interface sflow vlan %management_vlan%
+
+
+#IGMP Variables
+%if igmp=enable%
+%if switch_role=core%
+igmp filter-unknown-mcast
+igmp lookup-mode ip
+vlan %vlan1_id% ip igmp version 3
+vlan %vlan2_id% ip igmp version 3
+vlan %vlan3_id% ip igmp version 3
+%if vlans>3%
+vlan %vlan4_id% ip igmp version 3
+%endif%
+%if vlans>4%
+vlan %vlan5_id% ip igmp version 3
+%endif%
+%if vlans>5%
+vlan %vlan6_id% ip igmp version 3
+%endif%
+%if vlans>6%
+vlan %vlan7_id% ip igmp version 3
+%endif%
+%if vlans>7%
+vlan %vlan8_id% ip igmp version 3
+%endif%
+%if vlans>8%
+vlan %vlan9_id% ip igmp version 3
+%endif%
+%if vlans>9%
+vlan %vlan10_id% ip igmp version 3
+%endif%
+%else%
+no %vlan1_id% ip igmp querier
+no %vlan2_id% ip igmp querier
+no %vlan3_id% ip igmp querier
+%if vlans>3%
+no %vlan4_id% ip igmp querier
+%endif%
+%if vlans>4%
+no %vlan5_id% ip igmp querier
+%endif%
+%if vlans>5%
+no %vlan6_id% ip igmp querier
+%endif%
+%if vlans>6%
+no %vlan7_id% ip igmp querier
+%endif%
+%if vlans>7%
+no %vlan8_id% ip igmp querier
+%endif%
+%if vlans>8%
+no %vlan9_id% ip igmp querier
+%endif%
+%if vlans>9%
+no %vlan10_id% ip igmp querier
+%endif%
+%endif%
+%endif%
+
+
+#Tunneled Node Config
+%if tunneled_node=ubt%
+tunneled-node-server
+   controller-ip %sec_gw01%
+   backup-controller-ip %sec_gw02%
+   mode role-based reserved-vlan 1000
+   exit
+%endif%
+
+# Trunk Variables
+%if trunk_links=enable%
+# Trunk1
+trunk %trunk1_port1% %trk1_id% lacp
+trunk %trunk1_port2% %trk1_id% lacp
+%if trunk1_ports>2%
+trunk %trunk1_port3% %trk1_id% lacp
+%endif%
+%if trunk1_ports>3%
+trunk %trunk1_port4% %trk1_id% lacp
+%endif%
+%if trunk1_ports>4%
+trunk %trunk1_port5% %trk1_id% lacp
+%endif%
+%if trunk1_ports>5%
+trunk %trunk1_port6% %trk1_id% lacp
+%endif%
+%if trunk1_ports>6%
+trunk %trunk1_port7% %trk1_id% lacp
+%endif%
+%if trunk1_ports>7%
+trunk %trunk1_port8% %trk1_id% lacp
+%endif%
+%endif%
+# Trunk2
+%if trunks>1%
+trunk %trunk2_port1% %trk2_id% lacp
+trunk %trunk2_port2% %trk2_id% lacp
+%if trunk2_ports>2%
+trunk %trunk2_port3% %trk2_id% lacp
+%endif%
+%if trunk2_ports>3%
+trunk %trunk2_port4% %trk2_id% lacp
+%endif%
+%if trunk2_ports>4%
+trunk %trunk2_port5% %trk2_id% lacp
+%endif%
+%if trunk2_ports>5%
+trunk %trunk2_port6% %trk2_id% lacp
+%endif%
+%if trunk2_ports>6%
+trunk %trunk2_port7% %trk2_id% lacp
+%endif%
+%if trunk2_ports>7%
+trunk %trunk2_port8% %trk2_id% lacp
+%endif%
+%endif%
+# Trunk3
+%if trunks>2%
+trunk %trunk3_port1% %trk3_id% lacp
+trunk %trunk3_port2% %trk3_id% lacp
+%if trunk3_ports>2%
+trunk %trunk3_port3% %trk3_id% lacp
+%endif%
+%if trunk3_ports>3%
+trunk %trunk3_port4% %trk3_id% lacp
+%endif%
+%if trunk3_ports>4%
+trunk %trunk3_port5% %trk3_id% lacp
+%endif%
+%if trunk3_ports>5%
+trunk %trunk3_port6% %trk3_id% lacp
+%endif%
+%if trunk3_ports>6%
+trunk %trunk3_port7% %trk3_id% lacp
+%endif%
+%if trunk3_ports>7%
+trunk %trunk3_port8% %trk3_id% lacp
+%endif%
+%endif%
+# Trunk4
+%if trunks>3%
+trunk %trunk4_port1% %trk4_id% lacp
+trunk %trunk4_port2% %trk4_id% lacp
+%if trunk4_ports>2%
+trunk %trunk4_port3% %trk4_id% lacp
+%endif%
+%if trunk4_ports>3%
+trunk %trunk4_port4% %trk4_id% lacp
+%endif%
+%if trunk4_ports>4%
+trunk %trunk4_port5% %trk4_id% lacp
+%endif%
+%if trunk4_ports>5%
+trunk %trunk4_port6% %trk4_id% lacp
+%endif%
+%if trunk4_ports>6%
+trunk %trunk4_port7% %trk4_id% lacp
+%endif%
+%if trunk4_ports>7%
+trunk %trunk4_port8% %trk4_id% lacp
+%endif%
+%endif%
+# Trunk5
+%if trunks>4%
+trunk %trunk5_port1% %trk5_id% lacp
+trunk %trunk5_port2% %trk5_id% lacp
+%if trunk5_ports>2%
+trunk %trunk5_port3% %trk5_id% lacp
+%endif%
+%if trunk5_ports>3%
+trunk %trunk5_port4% %trk5_id% lacp
+%endif%
+%if trunk5_ports>4%
+trunk %trunk5_port5% %trk5_id% lacp
+%endif%
+%if trunk5_ports>5%
+trunk %trunk5_port6% %trk5_id% lacp
+%endif%
+%if trunk5_ports>6%
+trunk %trunk5_port7% %trk5_id% lacp
+%endif%
+%if trunk5_ports>7%
+trunk %trunk5_port8% %trk5_id% lacp
+%endif%
+%endif%
+# Trunk6
+%if trunks>5%
+trunk %trunk6_port1% %trk6_id% lacp
+trunk %trunk6_port2% %trk6_id% lacp
+%if trunk6_ports>2%
+trunk %trunk6_port3% %trk6_id% lacp
+%endif%
+%if trunk6_ports>3%
+trunk %trunk6_port4% %trk6_id% lacp
+%endif%
+%if trunk6_ports>4%
+trunk %trunk6_port5% %trk6_id% lacp
+%endif%
+%if trunk6_ports>5%
+trunk %trunk6_port6% %trk6_id% lacp
+%endif%
+%if trunk6_ports>6%
+trunk %trunk6_port7% %trk6_id% lacp
+%endif%
+%if trunk6_ports>7%
+trunk %trunk6_port8% %trk6_id% lacp
+%endif%
+%endif%
+# Trunk7
+%if trunks>6%
+trunk %trunk7_port1% %trk7_id% lacp
+trunk %trunk7_port2% %trk7_id% lacp
+%if trunk7_ports>2%
+trunk %trunk7_port3% %trk7_id% lacp
+%endif%
+%if trunk7_ports>3%
+trunk %trunk7_port4% %trk7_id% lacp
+%endif%
+%if trunk7_ports>4%
+trunk %trunk7_port5% %trk7_id% lacp
+%endif%
+%if trunk7_ports>5%
+trunk %trunk7_port6% %trk7_id% lacp
+%endif%
+%if trunk7_ports>6%
+trunk %trunk7_port7% %trk7_id% lacp
+%endif%
+%if trunk7_ports>7%
+trunk %trunk7_port8% %trk7_id% lacp
+%endif%
+%endif%
+# Trunk8
+%if trunks>7%
+trunk %trunk8_port1% %trk8_id% lacp
+trunk %trunk8_port2% %trk8_id% lacp
+%if trunk8_ports>2%
+trunk %trunk8_port3% %trk8_id% lacp
+%endif%
+%if trunk8_ports>3%
+trunk %trunk8_port4% %trk8_id% lacp
+%endif%
+%if trunk8_ports>4%
+trunk %trunk8_port5% %trk8_id% lacp
+%endif%
+%if trunk8_ports>5%
+trunk %trunk8_port6% %trk8_id% lacp
+%endif%
+%if trunk8_ports>6%
+trunk %trunk8_port7% %trk8_id% lacp
+%endif%
+%if trunk8_ports>7%
+trunk %trunk8_port8% %trk8_id% lacp
+%endif%
+%endif%
+# Trunk9
+%if trunks>8%
+trunk %trunk9_port1% %trk9_id% lacp
+trunk %trunk9_port2% %trk9_id% lacp
+%if trunk9_ports>2%
+trunk %trunk9_port3% %trk9_id% lacp
+%endif%
+%if trunk9_ports>3%
+trunk %trunk9_port4% %trk9_id% lacp
+%endif%
+%if trunk9_ports>4%
+trunk %trunk9_port5% %trk9_id% lacp
+%endif%
+%if trunk9_ports>5%
+trunk %trunk9_port6% %trk9_id% lacp
+%endif%
+%if trunk9_ports>6%
+trunk %trunk9_port7% %trk9_id% lacp
+%endif%
+%if trunk9_ports>7%
+trunk %trunk9_port8% %trk9_id% lacp
+%endif%
+%endif%
+# Trunk10
+%if trunks>9%
+trunk %trunk10_port1% %trk10_id% lacp
+trunk %trunk10_port2% %trk10_id% lacp
+%if trunk10_ports>2%
+trunk %trunk10_port3% %trk10_id% lacp
+%endif%
+%if trunk10_ports>3%
+trunk %trunk10_port4% %trk10_id% lacp
+%endif%
+%if trunk10_ports>4%
+trunk %trunk10_port5% %trk10_id% lacp
+%endif%
+%if trunk10_ports>5%
+trunk %trunk10_port6% %trk10_id% lacp
+%endif%
+%if trunk10_ports>6%
+trunk %trunk10_port7% %trk10_id% lacp
+%endif%
+%if trunk10_ports>7%
+trunk %trunk10_port8% %trk10_id% lacp
+%endif%
+%endif%
+
+# Trunk Port Descriptions
+%if trunk_links=enable%
+# Trunk1
+interface %trunk1_port1%
+   name "%trunk1_port1_name%"
+   exit
+interface %trunk1_port2%
+   name "%trunk1_port2_name%"
+   exit
+%if trunk1_ports>2%
+interface %trunk1_port3%
+   name "%trunk1_port3_name%"
+   exit
+%endif%
+%if trunk1_ports>3%
+interface %trunk1_port4%
+   name "%trunk1_port4_name%"
+   exit
+%endif%
+%if trunk1_ports>4%
+interface %trunk1_port5%
+   name "%trunk1_port5_name%"
+   exit
+%endif%
+%if trunk1_ports>5%
+interface %trunk1_port6
+   name "%trunk1_port6_name%"
+   exit
+%endif%
+%if trunk1_ports>6%
+interface %trunk1_port7%
+   name "%trunk1_port7_name%"
+   exit
+%endif%
+%if trunk1_ports>7%
+interface %trunk1_port8%
+   name "%trunk1_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk2
+%if trunks>1%
+interface %trunk2_port1%
+   name "%trunk2_port1_name%"
+   exit
+interface %trunk2_port2%
+   name "%trunk2_port2_name%"
+   exit
+%if trunk2_ports>2%
+interface %trunk2_port3%
+   name "%trunk2_port3_name%"
+   exit
+%endif%
+%if trunk2_ports>3%
+interface %trunk2_port4%
+   name "%trunk2_port4_name%"
+   exit
+%endif%
+%if trunk2_ports>4%
+interface %trunk2_port5%
+   name "%trunk2_port5_name%"
+   exit
+%endif%
+%if trunk2_ports>5%
+interface %trunk2_port6
+   name "%trunk2_port6_name%"
+   exit
+%endif%
+%if trunk2_ports>6%
+interface %trunk2_port7%
+   name "%trunk2_port7_name%"
+   exit
+%endif%
+%if trunk2_ports>7%
+interface %trunk2_port8%
+   name "%trunk2_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk3
+%if trunks>2%
+interface %trunk3_port1%
+   name "%trunk3_port1_name%"
+   exit
+interface %trunk3_port2%
+   name "%trunk3_port2_name%"
+   exit
+%if trunk3_ports>2%
+interface %trunk3_port3%
+   name "%trunk3_port3_name%"
+   exit
+%endif%
+%if trunk3_ports>3%
+interface %trunk3_port4%
+   name "%trunk3_port4_name%"
+   exit
+%endif%
+%if trunk3_ports>4%
+interface %trunk3_port5%
+   name "%trunk3_port5_name%"
+   exit
+%endif%
+%if trunk3_ports>5%
+interface %trunk3_port6
+   name "%trunk3_port6_name%"
+   exit
+%endif%
+%if trunk3_ports>6%
+interface %trunk3_port7%
+   name "%trunk3_port7_name%"
+   exit
+%endif%
+%if trunk3_ports>7%
+interface %trunk3_port8%
+   name "%trunk3_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk4
+%if trunks>3%
+interface %trunk4_port1%
+   name "%trunk4_port1_name%"
+   exit
+interface %trunk4_port2%
+   name "%trunk4_port2_name%"
+   exit
+%if trunk4_ports>2%
+interface %trunk4_port3%
+   name "%trunk4_port3_name%"
+   exit
+%endif%
+%if trunk4_ports>3%
+interface %trunk4_port4%
+   name "%trunk4_port4_name%"
+   exit
+%endif%
+%if trunk4_ports>4%
+interface %trunk4_port5%
+   name "%trunk4_port5_name%"
+   exit
+%endif%
+%if trunk4_ports>5%
+interface %trunk4_port6
+   name "%trunk4_port6_name%"
+   exit
+%endif%
+%if trunk4_ports>6%
+interface %trunk4_port7%
+   name "%trunk4_port7_name%"
+   exit
+%endif%
+%if trunk4_ports>7%
+interface %trunk4_port8%
+   name "%trunk4_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk5
+%if trunks>4%
+interface %trunk5_port1%
+   name "%trunk5_port1_name%"
+   exit
+interface %trunk5_port2%
+   name "%trunk5_port2_name%"
+   exit
+%if trunk5_ports>2%
+interface %trunk5_port3%
+   name "%trunk5_port3_name%"
+   exit
+%endif%
+%if trunk5_ports>3%
+interface %trunk5_port4%
+   name "%trunk5_port4_name%"
+   exit
+%endif%
+%if trunk5_ports>4%
+interface %trunk5_port5%
+   name "%trunk5_port5_name%"
+   exit
+%endif%
+%if trunk5_ports>5%
+interface %trunk5_port6
+   name "%trunk5_port6_name%"
+   exit
+%endif%
+%if trunk5_ports>6%
+interface %trunk5_port7%
+   name "%trunk5_port7_name%"
+   exit
+%endif%
+%if trunk5_ports>7%
+interface %trunk5_port8%
+   name "%trunk5_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk6
+%if trunks>5%
+interface %trunk6_port1%
+   name "%trunk6_port1_name%"
+   exit
+interface %trunk6_port2%
+   name "%trunk6_port2_name%"
+   exit
+%if trunk6_ports>2%
+interface %trunk6_port3%
+   name "%trunk6_port3_name%"
+   exit
+%endif%
+%if trunk6_ports>3%
+interface %trunk6_port4%
+   name "%trunk6_port4_name%"
+   exit
+%endif%
+%if trunk6_ports>4%
+interface %trunk6_port5%
+   name "%trunk6_port5_name%"
+   exit
+%endif%
+%if trunk6_ports>5%
+interface %trunk6_port6
+   name "%trunk6_port6_name%"
+   exit
+%endif%
+%if trunk6_ports>6%
+interface %trunk6_port7%
+   name "%trunk6_port7_name%"
+   exit
+%endif%
+%if trunk6_ports>7%
+interface %trunk6_port8%
+   name "%trunk6_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk7
+%if trunks>6%
+interface %trunk7_port1%
+   name "%trunk7_port1_name%"
+   exit
+interface %trunk7_port2%
+   name "%trunk7_port2_name%"
+   exit
+%if trunk7_ports>2%
+interface %trunk7_port3%
+   name "%trunk7_port3_name%"
+   exit
+%endif%
+%if trunk7_ports>3%
+interface %trunk7_port4%
+   name "%trunk7_port4_name%"
+   exit
+%endif%
+%if trunk7_ports>4%
+interface %trunk7_port5%
+   name "%trunk7_port5_name%"
+   exit
+%endif%
+%if trunk7_ports>5%
+interface %trunk7_port6
+   name "%trunk7_port6_name%"
+   exit
+%endif%
+%if trunk7_ports>6%
+interface %trunk7_port7%
+   name "%trunk7_port7_name%"
+   exit
+%endif%
+%if trunk7_ports>7%
+interface %trunk7_port8%
+   name "%trunk7_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk8
+%if trunks>7%
+interface %trunk8_port1%
+   name "%trunk8_port1_name%"
+   exit
+interface %trunk8_port2%
+   name "%trunk8_port2_name%"
+   exit
+%if trunk8_ports>2%
+interface %trunk8_port3%
+   name "%trunk8_port3_name%"
+   exit
+%endif%
+%if trunk8_ports>3%
+interface %trunk8_port4%
+   name "%trunk8_port4_name%"
+   exit
+%endif%
+%if trunk8_ports>4%
+interface %trunk8_port5%
+   name "%trunk8_port5_name%"
+   exit
+%endif%
+%if trunk8_ports>5%
+interface %trunk8_port6
+   name "%trunk8_port6_name%"
+   exit
+%endif%
+%if trunk8_ports>6%
+interface %trunk8_port7%
+   name "%trunk8_port7_name%"
+   exit
+%endif%
+%if trunk8_ports>7%
+interface %trunk8_port8%
+   name "%trunk8_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk9
+%if trunks>8%
+interface %trunk9_port1%
+   name "%trunk9_port1_name%"
+   exit
+interface %trunk9_port2%
+   name "%trunk9_port2_name%"
+   exit
+%if trunk9_ports>2%
+interface %trunk9_port3%
+   name "%trunk9_port3_name%"
+   exit
+%endif%
+%if trunk9_ports>3%
+interface %trunk9_port4%
+   name "%trunk9_port4_name%"
+   exit
+%endif%
+%if trunk9_ports>4%
+interface %trunk9_port5%
+   name "%trunk9_port5_name%"
+   exit
+%endif%
+%if trunk9_ports>5%
+interface %trunk9_port6
+   name "%trunk9_port6_name%"
+   exit
+%endif%
+%if trunk9_ports>6%
+interface %trunk9_port7%
+   name "%trunk9_port7_name%"
+   exit
+%endif%
+%if trunk9_ports>7%
+interface %trunk9_port8%
+   name "%trunk9_port8_name%"
+   exit
+%endif%
+%endif%
+# Trunk10
+%if trunks>9%
+interface %trunk10_port1%
+   name "%trunk10_port1_name%"
+   exit
+interface %trunk10_port2%
+   name "%trunk10_port2_name%"
+   exit
+%if trunk10_ports>2%
+interface %trunk10_port3%
+   name "%trunk10_port3_name%"
+   exit
+%endif%
+%if trunk10_ports>3%
+interface %trunk10_port4%
+   name "%trunk10_port4_name%"
+   exit
+%endif%
+%if trunk10_ports>4%
+interface %trunk10_port5%
+   name "%trunk10_port5_name%"
+   exit
+%endif%
+%if trunk10_ports>5%
+interface %trunk10_port6
+   name "%trunk10_port6_name%"
+   exit
+%endif%
+%if trunk10_ports>6%
+interface %trunk10_port7%
+   name "%trunk10_port7_name%"
+   exit
+%endif%
+%if trunk10_ports>7%
+interface %trunk10_port8%
+   name "%trunk10_port8_name%"
+   exit
+%endif%
+%endif%
+
+# VLAN Variables
+vlan %vlan1_id%
+   name "%vlan1_name%"
+   %if vlan1_ip_set=yes%
+   ip address %vlan1_ip% %vlan1_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan1_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+vlan %vlan2_id%
+   name "%vlan2_name%"
+   %if vlan2_ip_set=yes%
+   ip address %vlan2_ip% %vlan2_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan2_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+vlan %vlan3_id%
+   name "%vlan3_name%"
+   %if vlan3_ip_set=yes%
+   ip address %vlan3_ip% %vlan3_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan3_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%if vlans>3%
+vlan %vlan4_id%
+   name "%vlan4_name%"
+   %if vlan4_ip_set=yes%
+   ip address %vlan4_ip% %vlan4_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan4_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>4%
+vlan %vlan5_id%
+   name "%vlan5_name%"
+   %if vlan5_ip_set=yes%
+   ip address %vlan5_ip% %vlan5_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan5_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>5%
+vlan %vlan6_id%
+   name "%vlan6_name%"
+   %if vlan6_ip_set=yes%
+   ip address %vlan6_ip% %vlan6_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan6_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>6%
+vlan %vlan7_id%
+   name "%vlan7_name%"
+   %if vlan7_ip_set=yes%
+   ip address %vlan7_ip% %vlan7_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan7_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>7%
+vlan %vlan8_id%
+   name "%vlan8_name%"
+   %if vlan8_ip_set=yes%
+   ip address %vlan8_ip% %vlan8_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan8_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>8%
+vlan %vlan9_id%
+   name "%vlan9_name%"
+   %if vlan9_ip_set=yes%
+   ip address %vlan9_ip% %vlan9_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan9_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if vlans>9%
+vlan %vlan10_id%
+   name "%vlan10_name%"
+   %if vlan10_ip_set=yes%
+   ip address %vlan10_ip% %vlan10_netmask%
+   %else%
+   no ip address
+   %endif%
+   %if vlan10_jumbo=yes%
+   jumbo
+   %endif%
+   exit
+%endif%
+%if tunneled_node=ubt%
+vlan 1000
+   name "TUNNELED_NODE_SERVER_RESERVED"
+   no ip address
+   jumbo
+   exit
+%endif%
+primary-vlan %management_vlan%
+
+# Uplink Variables
+%if unsupported_transceiver=yes%
+allow-unsupported-transceiver
+%endif%
+%if switch_role=core%
+interface %core_uplink1%
+   untagged vlan %core_uplink1_native_vlan%
+   tagged vlan %core_uplink1_tagged_vlans%
+   exit
+interface %core_uplink2%
+   untagged vlan %core_uplink2_native_vlan%
+   tagged vlan %core_uplink2_tagged_vlans%
+   exit
+%if core_uplink>2%
+interface %core_uplink3%
+   untagged vlan %core_uplink3_native_vlan%
+   tagged vlan %core_uplink3_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>3%
+interface %core_uplink4%
+   untagged vlan %core_uplink4_native_vlan%
+   tagged vlan %core_uplink4_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>4%
+interface %core_uplink5%
+   untagged vlan %core_uplink5_native_vlan%
+   tagged vlan %core_uplink5_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>5%
+interface %core_uplink6%
+   untagged vlan %core_uplink6_native_vlan%
+   tagged vlan %core_uplink6_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>6%
+interface %core_uplink7%
+   untagged vlan %core_uplink7_native_vlan%
+   tagged vlan %core_uplink7_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>7%
+interface %core_uplink8%
+   untagged vlan %core_uplink8_native_vlan%
+   tagged vlan %core_uplink8_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>8%
+interface %core_uplink9%
+   untagged vlan %core_uplink9_native_vlan%
+   tagged vlan %core_uplink9_tagged_vlans%
+   exit
+%endif%
+%if core_uplink>9%
+interface %core_uplink10%
+   untagged vlan %core_uplink10_native_vlan%
+   tagged vlan %core_uplink10_tagged_vlans%
+   exit
+%endif%
+%else%
+interface %edge_uplink1%
+%if dhcp_snooping=yes%
+   dhcp-snooping trust
+%endif%   
+   untagged vlan %edge_uplink1_native_vlan%
+   tagged vlan %edge_uplink1_tagged_vlans%
+   exit
+%if edge_uplink>1%
+interface %edge_uplink2%
+%if dhcp_snooping=yes%
+   dhcp-snooping trust
+%endif%   
+   untagged vlan %edge_uplink2_native_vlan%
+   tagged vlan %edge_uplink2_tagged_vlans%
+   exit
+%endif%
+%endif%  
+
+# Port VLAN Variables
+interface %edge_ports% rate-limit bcast in percent 80
+interface %edge_ports% rate-limit mcast in percent 80
+
+
+# Mirrored port variables
+%if cdi_mirror_ports=enable%
+mirror 1 port %cdi_span_1%
+%if cdi_span>1%
+mirror 2 port %cdi_span_2%
+%endif%
+interface %mirrored_port1%
+   monitor all both mirror 1
+   exit
+%if cdi_span>1%
+interface %mirrored_port2%
+   monitor all both mirror 2
+   exit
+%endif%
+%endif%
+
+
+
+
+# 802.1X and MAC Authenticated Ports
+%if port_auth=enable%
+aaa port-access authenticator %auth_ports%
+aaa port-access authenticator %auth_ports% quiet-period 30
+aaa port-access authenticator %auth_ports% logoff-period 28800
+aaa port-access authenticator %auth_ports% client-limit 32
+aaa port-access authenticator active
+aaa port-access mac-based %auth_ports%
+aaa port-access mac-based %auth_ports% addr-limit 32
+aaa port-access mac-based %auth_ports% logoff-period 28800
+%endif%
+
+# Routing Variables
+ip default-gateway %default_gateway%
+
+# Spanning Tree Variables
+%if spanning_tree=enable%
+%if switch_role=core%
+spanning-tree
+spanning-tree mode rapid-pvst
+spanning-tree vlan %vlan1_id% priority 0
+spanning-tree vlan %vlan2_id% priority 0
+spanning-tree vlan %vlan3_id% priority 0
+%if vlans>3%
+spanning-tree vlan %vlan4_id% priority 0
+%endif%
+%if vlans>4%
+spanning-tree vlan %vlan5_id% priority 0
+%endif%
+%if vlans>5%
+spanning-tree vlan %vlan6_id% priority 0
+%endif%
+%if vlans>6%
+spanning-tree vlan %vlan7_id% priority 0
+%endif%
+%if vlans>7%
+spanning-tree vlan %vlan8_id% priority 0
+%endif%
+%if vlans>8%
+spanning-tree vlan %vlan9_id% priority 0
+%endif%
+%if vlans>9%
+spanning-tree vlan %vlan10_id% priority 0
+%endif%
+%if tunneled_node=ubt%
+spanning-tree vlan 1000 disable
+%endif%
+%if port_auth=enable%
+#spanning-tree %edge_ports% admin-edge-port
+#spanning-tree %edge_ports% bpdu-protection
+%endif%
+%else%
+spanning-tree
+spanning-tree mode rapid-pvst
+spanning-tree vlan %vlan1_id% priority 15
+spanning-tree vlan %vlan2_id% priority 15
+spanning-tree vlan %vlan3_id% priority 15
+%if vlans>3%
+spanning-tree vlan %vlan4_id% priority 15
+%endif%
+%if vlans>4%
+spanning-tree vlan %vlan5_id% priority 15
+%endif%
+%if vlans>5%
+spanning-tree vlan %vlan6_id% priority 15
+%endif%
+%if vlans>6%
+spanning-tree vlan %vlan7_id% priority 15
+%endif%
+%if vlans>7%
+spanning-tree vlan %vlan8_id% priority 15
+%endif%
+%if vlans>8%
+spanning-tree vlan %vlan9_id% priority 15
+%endif%
+%if vlans>9%
+spanning-tree vlan %vlan10_id% priority 15
+%endif%
+%if tunneled_node=ubt%
+spanning-tree vlan 1000 disable
+%endif%
+%if port_auth=enable%
+spanning-tree %edge_ports% admin-edge-port
+spanning-tree %edge_ports% bpdu-protection
+%endif%
+%endif%
+%endif%
+
+# Loop Protect Variables
+loop-protect %edge_ports%
+loop-protect trap loop-detected
+loop-protect transmit-interval 1 disable-timer 300
+
+# SNMP Variables
+snmp-server community "%snmp_string%" operator
+snmpv3 engineid "%_sys_snmpv3_engineid%"
