@@ -1,0 +1,606 @@
+#Stacking Configuration
+%if stacking=enabled%
+vsf split-detect mgmt
+vsf secondary-member 2
+vsf member 1 
+    type %member1_sku%
+    link 1 %member1_link1%
+%if stack_members>2%
+    link 2 %member1_link2%
+%endif%    
+%if stack_members>1%
+vsf member 2 
+    type %member2_sku%
+    link 1 %member2_link1%
+%if stack_members>2%
+    link 2 %member1_link2%
+%endif%
+%endif%
+%endif%
+
+#System Configuration
+hostname %_sys_hostname%
+ip dns domain-name adamslab.net
+ip dns server-address %dns_server1%
+ip dns server-address %dns_server2%
+user admin group administrators password plaintext %admin_password%
+clock timezone america/indiana/indianapolis
+ntp server %ntp_server1% iburst version 3
+ntp server %ntp_server2% iburst version 3
+ntp enable
+dhcpv4-snooping
+no dhcpv4-snooping option 82
+client track ip 
+
+#VRF Configuration
+vrf wan-inet1
+vrf wan-inet2
+vrf wan-mpls
+vrf wan-lte
+
+#VLAN Configuration
+vlan 1
+interface vlan 1
+    shutdown
+    no ip dhcp
+%if sdb_gateway=ha%
+vlan 2
+    name BGW HA NETWORK
+    no client track ip
+%endif%    
+vlan 10
+    name ISP NETWORK
+    no client track ip
+interface vlan 10
+    vrf attach wan-inet1
+vlan 100
+name GAMING NETWORK
+interface vlan 100
+    ip address %gaming_ip%/24
+    ip helper-address 10.0.0.1
+vlan 101
+    name SERVER NETWORK
+    client track ip                                            
+    ip igmp snooping enable
+interface vlan 101
+    ip address %server_ip%/24
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif% 
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif% 
+vlan 102
+    name GUEST NETWORK
+    client track ip 
+    dhcpv4-snooping
+vlan 104
+    name USER NETWORK
+    client track ip 
+    dhcpv4-snooping
+    ip igmp snooping enable
+interface vlan 104
+    ip address %user_ip%/24
+    ip helper-address %dhcp_server%
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif% 
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif%
+vlan 105
+    name SWITCH NETWORK
+    client track ip 
+    dhcpv4-snooping
+    ip igmp snooping enable
+interface vlan 105
+%if vnbt_node=enabled%
+    ip mtu 9128
+%endif%    
+    ip address %management_ip%/24
+    ip helper-address %dhcp_server%
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif% 
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif%  
+vlan 106
+    name AP NETWORK
+    client track ip 
+    dhcpv4-snooping
+    ip igmp snooping enable
+interface vlan 106
+#%if ubt_node=enabled%
+    ip mtu 9128
+#%endif%   
+    ip address %ap_ip%/24                               
+    ip helper-address %dhcp_server%
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif% 
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif%  
+vlan 107
+    name IOT NETWORK
+    client track ip 
+    dhcpv4-snooping
+    ip igmp snooping enable
+interface vlan 107
+    ip address %iot_ip%/24
+    ip helper-address %dhcp_server%
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif%    
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif%
+vlan 200
+    name LIGHTSHOW NETWORK
+    client track ip 
+    dhcpv4-snooping
+    ip igmp snooping enable
+interface vlan 200
+    ip address %lightshow_ip%/24
+    ip helper-address %dhcp_server%
+%if cdi=enabled%    
+    ip helper-address %cdi_collector_ip%
+%endif% 
+    ip igmp enable
+%if switch_role=core%    
+    ip igmp querier interval 5
+    ip igmp robustness 5
+    ip igmp last-member-query-interval 2
+    ip igmp query-max-response-time 50
+%else%
+    no ip igmp querier
+%endif%   
+%if ubt=enabled%
+vlan 1000
+    name TUNNELED_NODE_SERVER_RESERVED
+interface vlan 1000
+%endif%
+vlan 4085
+    name MPLS NETWORK
+    no client track ip
+interface vlan 4085
+    vrf attach wan-mpls
+
+#Routing Configuration
+ip route 0.0.0.0/0 %default_gateway%    
+
+#TACACS Configuration
+#TACACS Server Configuration
+%if tacacs_auth=enabled%
+tacacs-server timeout 30
+tacacs-server host %tacacs_server1% timeout 30 key plaintext %tacacs_key%
+tacacs-server host %tacacs_server2% timeout 30 key plaintext %tacacs_key%
+%endif%
+
+#TACACS Server Group
+%if tacacs_auth=enabled%
+aaa group server tacacs NAC-TACACS
+    server %tacacs_server2%
+    server %tacacs_server1%
+%endif%
+
+#TACACS Authentication Configuration
+%if tacacs_auth=enabled%
+aaa authentication allow-fail-through
+aaa authentication login https-server group NAC-TACACS local
+aaa authentication login ssh group NAC-TACACS local
+aaa authentication login console group NAC-TACACS local
+%endif%
+
+#TACACS Authorization Configuration
+%if tacacs_auth=enabled%
+aaa authorization commands ssh group NAC-TACACS local
+aaa authorization commands console group NAC-TACACS local
+%endif%
+
+#TACACS Accounting Configuration
+%if tacacs_auth=enabled%
+aaa accounting all-mgmt https-server start-stop group NAC-TACACS
+aaa accounting all-mgmt ssh start-stop group NAC-TACACS
+aaa accounting all-mgmt console start-stop group NAC-TACACS
+%endif%
+
+#Radius Configuration
+#Radius Server Configuration
+%if port_auth=enabled%
+radius-server host %radius_server1% key plaintext %radius_key% clearpass-username aos-dur clearpass-password plaintext %dur_key%
+radius-server host %radius_server2% key plaintext %radius_key% clearpass-username aos-dur clearpass-password plaintext %dur_key%
+radius dyn-authorization enable
+radius dyn-authorization client %radius_server1% secret-key plaintext %radius_key%
+radius dyn-authorization client %radius_server2% secret-key plaintext %radius_key%
+%endif%
+
+#Radius Server Group
+%if port_auth=enabled%
+aaa group server radius NAC-RADIUS
+    server %radius_server1%
+    server %radius_server2%
+%endif%
+
+#Radius Authenntication Configuration
+%if port_auth=enabled%
+aaa authentication port-access dot1x authenticator
+    radius server-group NAC-RADIUS
+    enable
+aaa authentication port-access mac-auth                        
+    radius server-group NAC-RADIUS
+    enable
+%endif%  
+
+#Radius Accounting Configuration
+%if port_auth=enabled%
+aaa accounting port-access start-stop interim 5 group NAC-RADIUS
+%endif%
+
+#Port Access Class ACL Configuration
+class ip dhcp
+10 match udp any any eq 67 count
+exit
+class ip dns
+10 match udp any any eq 53 count
+exit
+class ip ntp
+10 match tcp any any eq 123 count
+exit
+class ip clearpass-cp
+10 match tcp any 172.23.2.254 eq 80
+20 match tcp any 172.23.2.254 eq 443
+class ip web-traffic
+10 match tcp any any eq 80
+20 match tcp any any eq 443
+
+#Port Access Policy Configuration
+port-access policy initial-logon
+10 class ip dhcp
+20 class ip dns
+30 class ip ntp
+port-access policy guest-logon-cp
+10 class ip dhcp
+20 class ip dns
+30 class ip ntp
+40 class ip clearpass-cp
+50 class ip web-traffic action redirect captive-portal
+
+#Port Access Captive Portal Configuration
+aaa authentication port-access captive-portal-profile guest-logon
+url https://guest.adamslab.net/guest/guest-register-cx.php
+
+#Port Access Role Configuration
+port-access role guest-logon
+    description Guest Logon Role
+    associate policy guest-logon-cp
+    associate captive-portal-profile guest-logon
+    auth-mode client-mode
+    reauth-period 300
+port-access role logon
+    description Initial Logon Role
+    associate policy initial-logon
+    auth-mode client-mode
+    reauth-period 300
+port-access role missing-role
+    description ClearPass Role Response Missing
+    auth-mode client-mode
+    reauth-period 300
+    vlan access 104
+port-access role failsafe
+    description Radius Server Down Role
+    auth-mode client-mode
+    reauth-period 600
+    vlan access 104    
+
+#Mirror Port Configuration
+%if cdi=enabled%
+mirror session 1
+    destination interface %mirror_port_1%
+    source vlan 104 both
+    source vlan 101 both
+    source vlan 105 both
+    enable
+%if mirror_port>1%    
+mirror session 2
+    destination interface %mirror_port_2%
+    source vlan 200 both
+    source vlan 107 both
+    source vlan 106 both
+    enable
+%endif%   
+%endif%
+
+#Tunnel Configuration
+#UBT Configuration
+%if ubt=enabled%
+ubt-client-vlan 1000
+ubt zone HOME vrf default
+    primary-controller ip %sec_gateway1%
+    backup-controller ip %sec_gateway2%
+    enable
+%endif%    
+#VNBT Configuration
+%if vnbt=enabled%
+interface vxlan 1
+    source ip %ap_ip%
+    no shutdown
+    vni 100
+        vlan 100
+        vtep-peer %vtep_peer1%
+%if vtep_peer>1%        
+        vtep-peer %vtep_peer2%
+%endif%
+%if vtep_peer>2%
+        vtep-peer %vtep_peer3%
+%endif%        
+%endif%
+
+#Uplink Configuration
+%if uplink=sdb%
+interface lag 1
+    no shutdown
+    no routing
+    vlan trunk native 105
+%if sdb_gateway=ha%
+    vlan trunk allowed 2,101-102,104-107,200
+%else%
+    vlan trunk allowed 101-102,104-107,200
+%endif%
+    dhcpv4-snooping trust
+    lacp mode active
+    exit
+interface %sdb_gateway1_uplink1% 
+    no shutdown 
+    description %site_name%-SDWAN-GW01 %sdb_gateway1_port1%
+    lag 1
+    exit  
+interface %sdb_gateway1_uplink2% 
+    no shutdown 
+    description %site_name%-SDWAN-GW01 %sdb_gateway1_port2%
+    lag 1
+    exit    
+%endif%    
+%if sdb_gateway=ha%
+interface lag 2
+    no shutdown
+    no routing
+    vlan trunk native 105
+    vlan trunk allowed 2,101-102,104-107,200
+    dhcpv4-snooping trust
+    lacp mode active
+    exit
+interface %sdb_gateway2_uplink1%
+    no shutdown 
+    description %site_name%-SDWAN-GW02 %sdb_gateway2_port1%
+    lag 2
+    exit  
+interface %sdb_gateway2_uplink2%
+    no shutdown 
+    description %site_name%-SDWAN-GW02 %sdb_gateway2_port2%
+    lag 2
+    exit   
+%endif%  
+%if uplink=core_sw%
+interface lag %uplink_lag%
+    no shutdown
+    no routing
+    vlan trunk native 105
+    vlan trunk allowed 101,106,200
+    dhcpv4-snooping trust
+    lacp mode active
+    exit
+interface %uplink1%
+    no shutdown 
+    description %site_name%-CORE-SW %core_sw_port1%
+    lag %uplink_lag%
+    exit  
+interface %uplink2%
+    no shutdown 
+    description %site_name%-CORE-SW %core_sw_port2%
+    %uplink_lag%
+    exit   
+%endif%    
+
+#LAG Interface Configuration
+%if ubt=enabled%
+interface lag 64
+    no shutdown
+    no routing
+    vlan trunk native 106
+    vlan trunk allowed %sec_gateway_trunk_vlans%
+    lacp mode active
+interface lag 65
+    no shutdown
+    no routing
+    vlan trunk native 106
+    vlan trunk allowed %sec_gateway_trunk_vlans%
+    lacp mode active
+interface %sec_gateway1_port1%
+    no shutdown 
+    description %site_name%-SEC-GW01 %sec_gateway1_port1%
+    lag 64
+    exit  
+interface %sec_gateway1_port2%
+    no shutdown 
+    description %site_name%-SEC-GW01 %sec_gateway1_port1%
+    lag 64
+    exit    
+interface %sec_gateway2_port1%
+    no shutdown 
+    description %site_name%-SEC-GW02 %sec_gateway2_port1%
+    lag 65
+    exit  
+interface %sec_gateway2_port2%
+    no shutdown 
+    description %site_name%-SEC-GW02 %sec_gateway2_port2%
+    lag 65
+    exit       
+%endif%    
+
+#Downlink Interface Configuration
+interface 1/1/25
+    no shutdown
+    no routing
+    mtu 9198
+    vlan trunk native 105
+    vlan trunk allowed 102,104-107,200
+interface 1/1/26
+    no shutdown
+    no routing
+    mtu 9198
+    vlan trunk native 105
+    vlan trunk allowed 102,104-107,200
+interface 2/1/25
+    no shutdown
+    no routing
+    mtu 9198
+    vlan trunk native 105
+    vlan trunk allowed 102,104-107,200
+interface 2/1/26
+    no shutdown
+    no routing
+    mtu 9198
+    vlan trunk native 105
+    vlan trunk allowed 102,104-107,200
+
+#Edge Interface Configuration
+interface %edge_ports%
+    no shutdown 
+    no routing
+    vlan access 102
+    spanning-tree bpdu-guard
+    spanning-tree root-guard
+    spanning-tree tcn-guard
+    port-access onboarding-method concurrent enable
+    aaa authentication port-access client-limit 256
+    aaa authentication port-access critical-role failsafe
+    aaa authentication port-access preauth-role logon
+    aaa authentication port-access reject-role guest-logon
+    aaa authentication port-access auth-role missing-role
+    aaa authentication port-access dot1x authenticator
+        cached-reauth
+        cached-reauth-period 86400
+        max-eapol-requests 1
+        max-retries 1
+        reauth
+        enable
+    aaa authentication port-access mac-auth
+        cached-reauth
+        cached-reauth-period 86400
+        quiet-period 30
+        reauth
+        enable
+    loop-protect
+    exit
+
+#Non Edge Interface Configuration
+interface 1/1/20
+    no shutdown
+    no routing
+    vlan access 101
+interface 1/1/21
+    no shutdown
+    no routing
+    vlan access 1
+interface 1/1/22
+    no shutdown
+    no routing
+    vlan access 10
+interface 1/1/24
+    no shutdown
+    no routing
+    vlan trunk native 100 tag
+    vlan trunk allowed 10,100,4085
+interface 2/1/22
+    no shutdown
+    no routing
+    vlan access 4085
+interface 2/1/23
+    no shutdown
+    lag 111
+interface 2/1/24
+    no shutdown
+    no routing
+    vlan access 4085
+
+#Source Interface Variables
+ip source-interface dns %management_ip% vrf default
+ip source-interface ntp %management_ip% vrf default
+ip source-interface radius %management_ip% vrf default
+ip source-interface sflow %management_ip% vrf default
+ip source-interface syslog %management_ip% vrf default
+ip source-interface tacacs %management_ip% vrf default
+ip source-interface tftp %management_ip% vrf default
+ip source-interface ubt %ap_ip% vrf default
+
+#SNMP Variables
+snmp-server system-location %site_name%-%install_location%
+snmp-server system-contact admin@adamslab.net
+snmp-server community %snmp_secret%
+    
+#Spanning Tree Configuration
+spanning-tree mode rpvst
+spanning-tree
+spanning-tree bpdu-guard timeout 300
+spanning-tree vlan 101,102,104-107,200
+%if switch_role=core%
+spanning-tree vlan 101 priority 0
+spanning-tree vlan 102 priority 0
+spanning-tree vlan 104 priority 0
+spanning-tree vlan 105 priority 0
+spanning-tree vlan 106 priority 0
+spanning-tree vlan 107 priority 0
+spanning-tree vlan 200 priority 0
+%else%
+spanning-tree vlan 102 priority 15
+spanning-tree vlan 104 priority 15
+spanning-tree vlan 105 priority 15
+spanning-tree vlan 106 priority 15
+spanning-tree vlan 107 priority 15
+spanning-tree vlan 200 priority 15
+%endif%
+
+#Loop Protect Configuration
+loop-protect trap loop-detected
+loop-protect transmit-interval 5
+loop-protect re-enable-timer 300
+
+#Certificate Configuration
+crypto pki ta-profile ClearPass-https
+    ta-certificate
+        -----BEGIN CERTIFICATE-----
+        this should be your ClearPass HTTP certificate CA
+        -----END CERTIFICATE-----
+        END_OF_CERTIFICATE
